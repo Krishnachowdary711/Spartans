@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<h3>Add Transaction</h3>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}  <!-- This will include the new date field -->
+    <button type="submit" class="btn btn-success">Add Transaction</button>
+</form>
+{% endblock %}

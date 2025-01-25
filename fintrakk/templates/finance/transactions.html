@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>Recent Transactions</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Account</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <div class="pagination">
+                <span class="step-links">
+                    {% if transactions.has_previous %}
+                        <a href="?page=1">&laquo; first</a>
+                        <a href="?page={{ transactions.previous_page_number }}">previous</a>
+                    {% endif %}
+            
+                    <span class="current">
+                        Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}.
+                    </span>
+            
+                    {% if transactions.has_next %}
+                        <a href="?page={{ transactions.next_page_number }}">next</a>
+                        <a href="?page={{ transactions.paginator.num_pages }}">last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.date }}</td>
+                    <td>{{ transaction.category }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.account.name }}</td>
+                    <td>${{ transaction.amount }}</td>
+                    <td>
+                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-primary btn-sm">Edit</a>
+                        <form action="{% url 'delete_transaction' transaction.id %}" method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No transactions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Add Transaction Button -->
+        <a href="{% url 'add_transaction' %}" class="btn btn-success">Add Transaction</a>
+    </div>
+</div>
+{% endblock %}

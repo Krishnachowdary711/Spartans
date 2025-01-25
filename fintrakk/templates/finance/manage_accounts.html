@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<h3>Manage Accounts</h3>
+<ul>
+    {% for account in accounts %}
+    <li>{{ account.name }} - ${{ account.balance }}</li>
+    {% endfor %}
+</ul>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Add Account</button>
+</form>
+{% endblock %}

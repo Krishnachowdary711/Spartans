@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<div class="text-center">
+    <h1>Welcome to Fintrakk</h1>
+    <p>Your personal finance and expense tracking system.</p>
+    <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+    <a href="{% url 'register' %}" class="btn btn-secondary">Register</a>
+</div>
+{% endblock %}

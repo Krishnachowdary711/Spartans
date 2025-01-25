@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <ul class="list-group">
+            <li class="list-group-item"><a href="{% url 'dashboard' %}">Overview</a></li>
+            <li class="list-group-item"><a href="{% url 'manage_accounts' %}">Accounts</a></li>
+            <li class="list-group-item"><a href="{% url 'manage_categories' %}">Categories</a></li>
+            <li class="list-group-item"><a href="{% url 'transactions' %}">Transactions</a></li>
+            <li class="list-group-item"><a href="{% url 'get_report' %}">Get Report</a></li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <h3>Overview</h3>
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4>Total Balance: ${{ total_balance }}</h4>
+                <h4>Total Transactions: {{ total_transactions }}</h4>
+            </div>
+        </div>
+
+        <h4>Account Balances</h4>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Account Name</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td>{{ account.name }}</td>
+                    <td>${{ account.balance }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center">No accounts found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h4>Recent Transactions</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Account</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.date }}</td>
+                    <td>{{ transaction.category }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.account.name }}</td>
+                    <td>${{ transaction.amount }}</td>
+                    <td>
+                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-primary btn-sm">Edit</a>
+                        <form action="{% url 'delete_transaction' transaction.id %}" method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No transactions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
