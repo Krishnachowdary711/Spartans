@@ -1,17 +1,50 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block content %}
 <h3>Manage Accounts</h3>
-<ul>
-    {% for account in accounts %}
-    <li>{{ account.name }} - ${{ account.balance }}</li>
-    {% endfor %}
-</ul>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Account</button>
-</form>
+
+<div class="row">
+    <!-- Accounts List -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h4>Accounts</h4>
+                <div class="row">
+                    {% for account in accounts %}
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body text-center">
+                                <h5>{{ account.name }}</h5>
+                                <p>Balance: ${{ account.balance }}</p>
+                                <a href="{% url 'edit_account' account.id %}" class="btn btn-primary btn-sm">Edit</a>
+                                <form action="{% url 'delete_account' account.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center">No accounts found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Form -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h4>Add Account</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" name="add_account" class="btn btn-success btn-block">Add Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
