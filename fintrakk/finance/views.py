@@ -140,17 +140,44 @@ def add_transaction(request):
 
 @login_required
 def manage_accounts(request):
-    accounts = Account.objects.filter(user=request.user)
-    if request.method == 'POST':
+    accounts = Account.objects.filter(user=request.user)  # Fetch all accounts for the user
+
+    # Adding a new account
+    if request.method == 'POST' and 'add_account' in request.POST:
         form = AccountForm(request.POST)
         if form.is_valid():
             account = form.save(commit=False)
             account.user = request.user
             account.save()
             return redirect('manage_accounts')
+
+    # Form for adding accounts
+    form = AccountForm()
+
+    return render(request, 'finance/manage_accounts.html', {
+        'accounts': accounts,
+        'form': form,
+    })
+
+@login_required
+def edit_account(request, account_id):
+    account = get_object_or_404(Account, id=account_id, user=request.user)
+
+    if request.method == 'POST':
+        form = AccountForm(request.POST, instance=account)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_accounts')
     else:
-        form = AccountForm()
-    return render(request, 'finance/manage_accounts.html', {'accounts': accounts, 'form': form})
+        form = AccountForm(instance=account)
+
+    return render(request, 'finance/edit_account.html', {'form': form, 'account': account})
+
+@login_required
+def delete_account(request, account_id):
+    account = get_object_or_404(Account, id=account_id, user=request.user)
+    account.delete()
+    return redirect('manage_accounts')
 
 @login_required
 def manage_categories(request):
