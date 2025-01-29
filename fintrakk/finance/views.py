@@ -181,17 +181,44 @@ def delete_account(request, account_id):
 
 @login_required
 def manage_categories(request):
-    categories = Category.objects.filter(user=request.user)
-    if request.method == 'POST':
+    categories = Category.objects.filter(user=request.user)  # Fetch all user-specific categories
+
+    # Adding a new category
+    if request.method == 'POST' and 'add_category' in request.POST:
         form = CategoryForm(request.POST)
         if form.is_valid():
             category = form.save(commit=False)
             category.user = request.user
             category.save()
             return redirect('manage_categories')
+
+    # Form for adding categories
+    form = CategoryForm()
+
+    return render(request, 'finance/manage_categories.html', {
+        'categories': categories,
+        'form': form,
+    })
+
+@login_required
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id, user=request.user)
+
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect('manage_categories')
     else:
-        form = CategoryForm()
-    return render(request, 'finance/manage_categories.html', {'categories': categories, 'form': form})
+        form = CategoryForm(instance=category)
+
+    return render(request, 'finance/edit_category.html', {'form': form, 'category': category})
+
+@login_required
+def delete_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id, user=request.user)
+    category.delete()
+    return redirect('manage_categories')
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
