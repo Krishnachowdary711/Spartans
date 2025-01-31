@@ -1,17 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block content %}
 <h3>Manage Categories</h3>
-<ul>
-    {% for category in categories %}
-    <li>{{ category.name }}</li>
-    {% endfor %}
-</ul>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Category</button>
-</form>
+
+<div class="row">
+    <!-- Categories List -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h4>Categories</h4>
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-body text-center">
+                                <h5>{{ category.name }}</h5>
+                                <a href="{% url 'edit_category' category.id %}" class="btn btn-primary btn-sm">Edit</a>
+                                <form action="{% url 'delete_category' category.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center">No categories found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Form -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h4>Add Category</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" name="add_category" class="btn btn-success btn-block">Add Category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
