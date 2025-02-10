@@ -32,14 +32,11 @@ def dashboard(request):
     # Fetch all accounts and transactions for the logged-in user
     accounts = Account.objects.filter(user=request.user)
     transactions = Transaction.objects.filter(user=request.user)
-
-    # Recalculate the total balance from all accounts dynamically
     total_balance = accounts.aggregate(Sum('balance'))['balance__sum'] or 0
 
     # Count the total number of transactions
     total_transactions = transactions.count()
 
-    # Pass individual account balances to the template
     return render(request, 'finance/dashboard.html', {
         'accounts': accounts,  # List of accounts with balances
         'transactions': transactions,
@@ -77,7 +74,7 @@ def delete_transaction(request, transaction_id):
 @login_required
 def edit_transaction(request, transaction_id):
     transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
-    account = transaction.account  # Fetch the related account
+    account = transaction.account  
 
     # Store the original values before the transaction is modified
     original_amount = transaction.amount
@@ -272,3 +269,40 @@ def transactions(request):
     page_number = request.GET.get('page')
     transactions = paginator.get_page(page_number)
     return render(request, 'finance/transactions.html', {'transactions': transactions})
+
+
+
+
+
+import requests
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+API_KEY = '1c8e8aba6ed93cd206149d4e'  
+BASE_URL = f'https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD'
+
+@login_required
+def currency_conversion(request):
+    response = requests.get(BASE_URL)
+    data = response.json()
+
+    if data['result'] == 'success':
+        rates = data['conversion_rates']
+    else:
+        rates = {}
+    amount = float(request.GET.get('amount', 0))
+    from_currency = request.GET.get('from_currency', 'USD')
+    to_currency = request.GET.get('to_currency', 'EUR')
+
+    converted_amount = None
+    if amount and from_currency in rates and to_currency in rates:
+        usd_amount = amount / rates[from_currency]  # Convert to USD first
+        converted_amount = usd_amount * rates[to_currency]  # Convert from USD to target currency
+
+    return render(request, 'finance/currency_conversion.html', {
+        'rates': rates,
+        'converted_amount': converted_amount,
+        'amount': amount,
+        'from_currency': from_currency,
+        'to_currency': to_currency,
+    })

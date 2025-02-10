@@ -18,4 +18,5 @@ urlpatterns = [
     path('get_report/', views.get_report, name='get_report'),
     path('delete_transaction/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('edit_transaction/<int:transaction_id>/', views.edit_transaction, name='edit_transaction'),
+    path('currency_conversion/', views.currency_conversion, name='currency_conversion'),
 ]
