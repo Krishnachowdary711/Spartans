@@ -1,65 +1,114 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h3>Recent Transactions</h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Type</th>
-                    <th>Account</th>
-                    <th>Amount</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <div class="pagination">
-                <span class="step-links">
-                    {% if transactions.has_previous %}
-                        <a href="?page=1">&laquo; first</a>
-                        <a href="?page={{ transactions.previous_page_number }}">previous</a>
-                    {% endif %}
-            
-                    <span class="current">
-                        Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}.
-                    </span>
-            
-                    {% if transactions.has_next %}
-                        <a href="?page={{ transactions.next_page_number }}">next</a>
-                        <a href="?page={{ transactions.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </span>
-            </div>
-            <tbody>
-                {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.date }}</td>
-                    <td>{{ transaction.category }}</td>
-                    <td>{{ transaction.description }}</td>
-                    <td>{{ transaction.type }}</td>
-                    <td>{{ transaction.account.name }}</td>
-                    <td>${{ transaction.amount }}</td>
-                    <td>
-                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-primary btn-sm">Edit</a>
-                        <form action="{% url 'delete_transaction' transaction.id %}" method="POST" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center">No transactions found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<h3>Transactions</h3>
 
-        <!-- Add Transaction Button -->
-        <a href="{% url 'add_transaction' %}" class="btn btn-success">Add Transaction</a>
+<!-- Add Transaction Button -->
+<a href="{% url 'add_transaction' %}" class="btn btn-success">Add Transaction</a>
+
+<!-- Filter Form -->
+<form method="GET" class="mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <select name="account" class="form-control">
+                <option value="">All Accounts</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if request.GET.account|default:'' == account.id|stringformat:"s" %}selected{% endif %}>
+                    {{ account.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-control">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if request.GET.category|default:'' == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="type" class="form-control">
+                <option value="">All Types</option>
+                <option value="Income" {% if request.GET.type|default:'' == "Income" %}selected{% endif %}>Income</option>
+                <option value="Expense" {% if request.GET.type|default:'' == "Expense" %}selected{% endif %}>Expense</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="start_date" class="form-label small">Start Date</label>
+            <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.GET.start_date|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <label for="end_date" class="form-label small">End Date</label>
+            <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.GET.end_date|default:'' }}">
+        </div>
     </div>
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'transactions' %}" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
+
+<!-- Transactions Table -->
+<div class="mt-3">
+    <a href="{% url 'download_transactions' 'csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success">Download CSV</a>
+    <a href="{% url 'download_transactions' 'excel' %}?{{ request.GET.urlencode }}" class="btn btn-outline-info">Download Excel</a>
 </div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Account</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.account.name }}</td>
+            <td>{{ transaction.category.name }}</td>
+            <td>{{ transaction.description }}</td>
+            <td>{{ transaction.type }}</td>
+            <td>${{ transaction.amount }}</td>
+            <td>
+                <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-primary btn-sm">Edit</a>
+                <form action="{% url 'delete_transaction' transaction.id %}" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">No transactions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if transactions.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ transactions.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}.
+        </span>
+
+        {% if transactions.has_next %}
+            <a href="?page={{ transactions.next_page_number }}">next</a>
+            <a href="?page={{ transactions.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
 {% endblock %}

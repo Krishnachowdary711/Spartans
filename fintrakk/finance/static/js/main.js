@@ -14,3 +14,11 @@ setTimeout(() => {
         alertBox.remove();
     }
 }, 3000);
+
+document.querySelectorAll('.btn-danger').forEach(button => {
+    button.addEventListener('click', function (event) {
+        if (!confirm('Are you sure you want to delete this account?')) {
+            event.preventDefault();
+        }
+    });
+});

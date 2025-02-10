@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from datetime import date
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 def home(request):
     return render(request, 'finance/home.html')
@@ -44,14 +45,39 @@ def dashboard(request):
         'total_transactions': total_transactions,
     })
 
+
+
 @login_required
 def transactions(request):
-    # Fetch recent transactions for the logged-in user
+    # Fetch all transactions for the logged-in user
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
-    # Pass transactions to the template
+    # Fetch accounts and categories for the logged-in user
+    accounts = Account.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user)
+
+    # Filtering logic
+    account_id = request.GET.get('account')
+    category_id = request.GET.get('category')
+    transaction_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if account_id and account_id.isdigit():
+        transactions = transactions.filter(account_id=account_id)
+    if category_id and category_id.isdigit():
+        transactions = transactions.filter(category_id=category_id)
+    if transaction_type:
+        transactions = transactions.filter(type=transaction_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
     return render(request, 'finance/transactions.html', {
         'transactions': transactions,
+        'accounts': accounts,
+        'categories': categories,
     })
 
 @login_required
@@ -263,15 +289,98 @@ def get_report(request):
 
 
 
+from django.core.paginator import Paginator
+
 def transactions(request):
     transactions_list = Transaction.objects.filter(user=request.user).order_by('-date')
-    paginator = Paginator(transactions_list, 10)  # 10 transactions per page
+    paginator = Paginator(transactions_list, 10)  # Show 10 transactions per page
     page_number = request.GET.get('page')
     transactions = paginator.get_page(page_number)
-    return render(request, 'finance/transactions.html', {'transactions': transactions})
+
+    accounts = Account.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user)
+
+    return render(request, 'finance/transactions.html', {
+        'transactions': transactions,
+        'accounts': accounts,
+        'categories': categories,
+    })
 
 
+import csv
+from django.http import HttpResponse
+import openpyxl
 
+@login_required
+def download_transactions(request, file_format='csv'):
+    # Fetch all transactions for the logged-in user
+    transactions = Transaction.objects.filter(user=request.user)
+
+    # Apply filters from the request
+    account_id = request.GET.get('account')
+    category_id = request.GET.get('category')
+    transaction_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if account_id and account_id.isdigit():
+        transactions = transactions.filter(account_id=account_id)
+    if category_id and category_id.isdigit():
+        transactions = transactions.filter(category_id=category_id)
+    if transaction_type:
+        transactions = transactions.filter(type=transaction_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    # Handle CSV download
+    if file_format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Date', 'Account', 'Category', 'Description', 'Type', 'Amount'])
+        for transaction in transactions:
+            writer.writerow([
+                transaction.date,
+                transaction.account.name,
+                transaction.category.name,
+                transaction.description,
+                transaction.type,
+                transaction.amount
+            ])
+        return response
+
+    # Handle Excel download
+    elif file_format == 'excel':
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = 'Transactions'
+
+        # Write headers
+        headers = ['Date', 'Account', 'Category', 'Description', 'Type', 'Amount']
+        sheet.append(headers)
+
+        # Write data
+        for transaction in transactions:
+            sheet.append([
+                transaction.date,
+                transaction.account.name,
+                transaction.category.name,
+                transaction.description,
+                transaction.type,
+                transaction.amount
+            ])
+
+        # Save workbook to the response
+        workbook.save(response)
+        return response
+
+    return HttpResponse(status=400)  # Bad Request for unsupported formats
 
 
 import requests
