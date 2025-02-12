@@ -12,6 +12,14 @@ from django.urls import reverse
 from datetime import date
 from django.core.paginator import Paginator
 from django.db.models import Q
+import io
+import base64
+import matplotlib
+matplotlib.use('Agg')
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.express as px
+from django.http import HttpResponse
 
 def home(request):
     return render(request, 'finance/home.html')
@@ -269,25 +277,132 @@ from django.db.models import Sum
 
 @login_required
 def get_report(request):
-    transactions = Transaction.objects.filter(user=request.user)
-    if request.GET.get('category'):
-        transactions = transactions.filter(category__name=request.GET['category'])
-    if request.GET.get('from'):
-        transactions = transactions.filter(date__gte=request.GET['from'])
-    if request.GET.get('to'):
-        transactions = transactions.filter(date__lte=request.GET['to'])
-    
-    total_income = transactions.filter(type='Income').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_expense = transactions.filter(type='Expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    user = request.user
+    transactions = Transaction.objects.filter(user=user).order_by('-date')
+
+    # Fetch filtering options
+    accounts = Account.objects.filter(user=user)
+    categories = Category.objects.filter(user=user)
+
+    # Retrieve filters from GET request
+    account_id = request.GET.get('account')
+    category_id = request.GET.get('category')
+    transaction_type = request.GET.get('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    chart_type = request.GET.get('chart_type', 'bar')  # Default: bar chart
+
+    # Apply filters
+    if account_id:
+        transactions = transactions.filter(account_id=account_id)
+    if category_id:
+        transactions = transactions.filter(category_id=category_id)
+    if transaction_type:
+        transactions = transactions.filter(type=transaction_type)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    # Convert queryset to Pandas DataFrame
+    data = pd.DataFrame.from_records(transactions.values('date', 'category__name', 'type', 'amount'))
+
+    # Convert 'amount' column to numeric (force errors to NaN and drop them)
+    if not data.empty:
+        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to numeric
+        data = data.dropna(subset=['amount'])  # Drop rows with NaN in 'amount'
+
+    chart_url = generate_chart(data, chart_type) if not data.empty else None
 
     return render(request, 'finance/get_report.html', {
         'transactions': transactions,
-        'total_income': total_income,
-        'total_expense': total_expense,
+        'accounts': accounts,
+        'categories': categories,
+        'chart_url': chart_url,
     })
 
+def generate_chart(data, chart_type):
+    if data.empty or 'amount' not in data.columns:
+        plt.figure(figsize=(6, 4))
+        plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        return save_chart_to_url()
+
+    plt.figure(figsize=(8, 5))
+
+    if chart_type == 'bar':
+        grouped_data = data.groupby(['category__name'])['amount'].sum()
+        if grouped_data.empty:
+            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        else:
+            grouped_data.plot(kind='bar', color='skyblue')
+            plt.xlabel("Category")
+            plt.ylabel("Total Amount")
+            plt.title("Spending by Category")
+
+    elif chart_type == 'pie':
+        grouped_data = data.groupby(['category__name'])['amount'].sum()
+        if grouped_data.empty:
+            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        else:
+            plt.pie(
+                grouped_data,
+                labels=grouped_data.index,
+                autopct='%1.1f%%',
+                startangle=90,
+                colors=plt.cm.Paired.colors
+            )
+            plt.legend(title="Categories", loc="best", bbox_to_anchor=(1, 1))
+            plt.title("Expense Distribution")
+
+    elif chart_type == 'line':
+        grouped_data = data.groupby(['date'])['amount'].sum()
+        if grouped_data.empty:
+            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        else:
+            grouped_data.plot(kind='line', marker='o', linestyle='-', color='blue')
+            plt.xlabel("Date")
+            plt.ylabel("Total Amount")
+            plt.title("Expense/Income Trend Over Time")
+
+    return save_chart_to_url()
 
 
+def save_chart_to_url():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')  # Prevent overlapping elements
+    buf.seek(0)
+    plt.close()
+
+    return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
+
+@login_required
+def download_chart(request, chart_type):
+    transactions = Transaction.objects.filter(user=request.user)
+
+    if not transactions.exists():
+        return HttpResponse("No transactions available", status=400)
+
+    # Convert transactions to DataFrame
+    data = pd.DataFrame.from_records(transactions.values('date', 'category__name', 'type', 'amount'))
+
+    # Convert 'amount' to numeric
+    if not data.empty:
+        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to float
+        data = data.dropna(subset=['amount'])  # Remove invalid rows
+
+    # Ensure we have valid data
+    if data.empty or 'amount' not in data.columns:
+        return HttpResponse("No valid numeric data available to plot.", status=400)
+
+    # Generate the requested chart
+    generate_chart(data, chart_type)
+
+    response = HttpResponse(content_type="image/png")
+    plt.savefig(response, format="png", bbox_inches='tight')
+    plt.close()
+    response["Content-Disposition"] = f"attachment; filename={chart_type}_chart.png"
+
+    return response
 
 from django.core.paginator import Paginator
 
