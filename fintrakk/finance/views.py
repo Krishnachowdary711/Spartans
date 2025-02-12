@@ -373,13 +373,6 @@ def transactions(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
-    transactions_list = Transaction.objects.filter(user=request.user).order_by('-date')
-    paginator = Paginator(transactions_list, 10)  # Show 10 transactions per page
-    page_number = request.GET.get('page')
-    transactions = paginator.get_page(page_number)
-
-    accounts = Account.objects.filter(user=request.user)
-    categories = Category.objects.filter(user=request.user)
     # Apply filters
     if selected_accounts:
         transactions = transactions.filter(account_id__in=selected_accounts)
