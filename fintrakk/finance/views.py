@@ -14,6 +14,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 import io
 import base64
+import seaborn as sns
 import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
@@ -53,40 +54,6 @@ def dashboard(request):
         'total_transactions': total_transactions,
     })
 
-
-
-@login_required
-def transactions(request):
-    # Fetch all transactions for the logged-in user
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-
-    # Fetch accounts and categories for the logged-in user
-    accounts = Account.objects.filter(user=request.user)
-    categories = Category.objects.filter(user=request.user)
-
-    # Filtering logic
-    account_id = request.GET.get('account')
-    category_id = request.GET.get('category')
-    transaction_type = request.GET.get('type')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    if account_id and account_id.isdigit():
-        transactions = transactions.filter(account_id=account_id)
-    if category_id and category_id.isdigit():
-        transactions = transactions.filter(category_id=category_id)
-    if transaction_type:
-        transactions = transactions.filter(type=transaction_type)
-    if start_date:
-        transactions = transactions.filter(date__gte=start_date)
-    if end_date:
-        transactions = transactions.filter(date__lte=end_date)
-
-    return render(request, 'finance/transactions.html', {
-        'transactions': transactions,
-        'accounts': accounts,
-        'categories': categories,
-    })
 
 @login_required
 def delete_transaction(request, transaction_id):
@@ -277,28 +244,23 @@ from django.db.models import Sum
 
 @login_required
 def get_report(request):
-    user = request.user
-    transactions = Transaction.objects.filter(user=user).order_by('-date')
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
-    # Fetch filtering options
-    accounts = Account.objects.filter(user=user)
-    categories = Category.objects.filter(user=user)
-
-    # Retrieve filters from GET request
-    account_id = request.GET.get('account')
-    category_id = request.GET.get('category')
-    transaction_type = request.GET.get('type')
+    # Multi-select filters
+    selected_accounts = request.GET.getlist('account')
+    selected_categories = request.GET.getlist('category')
+    selected_types = request.GET.getlist('type')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    chart_type = request.GET.get('chart_type', 'bar')  # Default: bar chart
+    chart_type = request.GET.get('chart_type', 'bar')  # Default to bar chart
 
     # Apply filters
-    if account_id:
-        transactions = transactions.filter(account_id=account_id)
-    if category_id:
-        transactions = transactions.filter(category_id=category_id)
-    if transaction_type:
-        transactions = transactions.filter(type=transaction_type)
+    if selected_accounts:
+        transactions = transactions.filter(account_id__in=selected_accounts)
+    if selected_categories:
+        transactions = transactions.filter(category_id__in=selected_categories)
+    if selected_types:
+        transactions = transactions.filter(type__in=selected_types)
     if start_date:
         transactions = transactions.filter(date__gte=start_date)
     if end_date:
@@ -307,73 +269,68 @@ def get_report(request):
     # Convert queryset to Pandas DataFrame
     data = pd.DataFrame.from_records(transactions.values('date', 'category__name', 'type', 'amount'))
 
-    # Convert 'amount' column to numeric (force errors to NaN and drop them)
     if not data.empty:
-        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to numeric
-        data = data.dropna(subset=['amount'])  # Drop rows with NaN in 'amount'
+        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')
+        data = data.dropna(subset=['amount'])
 
+    # Generate the chart if data exists
     chart_url = generate_chart(data, chart_type) if not data.empty else None
 
     return render(request, 'finance/get_report.html', {
-        'transactions': transactions,
-        'accounts': accounts,
-        'categories': categories,
+        'accounts': Account.objects.filter(user=request.user),
+        'categories': Category.objects.filter(user=request.user),
         'chart_url': chart_url,
+        'selected_accounts': selected_accounts,
+        'selected_categories': selected_categories,
+        'selected_types': selected_types,
     })
 
+# Function to save chart to base64 URL for rendering in template
+def save_chart_to_url():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    plt.close()
+    return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
+
+# Function to generate enhanced visualizations
 def generate_chart(data, chart_type):
     if data.empty or 'amount' not in data.columns:
         plt.figure(figsize=(6, 4))
         plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
         return save_chart_to_url()
 
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")  # Improved aesthetics
 
     if chart_type == 'bar':
-        grouped_data = data.groupby(['category__name'])['amount'].sum()
-        if grouped_data.empty:
-            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
-        else:
-            grouped_data.plot(kind='bar', color='skyblue')
-            plt.xlabel("Category")
-            plt.ylabel("Total Amount")
-            plt.title("Spending by Category")
+        grouped_data = data.groupby(['category__name'])['amount'].sum().sort_values(ascending=False)
+        sns.barplot(x=grouped_data.values, y=grouped_data.index, palette='Blues_d')
+        plt.xlabel("Total Amount")
+        plt.ylabel("Category")
+        plt.title("Spending by Category")
 
     elif chart_type == 'pie':
         grouped_data = data.groupby(['category__name'])['amount'].sum()
-        if grouped_data.empty:
-            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
-        else:
-            plt.pie(
-                grouped_data,
-                labels=grouped_data.index,
-                autopct='%1.1f%%',
-                startangle=90,
-                colors=plt.cm.Paired.colors
-            )
-            plt.legend(title="Categories", loc="best", bbox_to_anchor=(1, 1))
-            plt.title("Expense Distribution")
+        plt.pie(
+            grouped_data,
+            labels=grouped_data.index,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=sns.color_palette('pastel')
+        )
+        plt.legend(title="Categories", loc="best", bbox_to_anchor=(1, 1))
+        plt.title("Expense Distribution")
 
     elif chart_type == 'line':
         grouped_data = data.groupby(['date'])['amount'].sum()
-        if grouped_data.empty:
-            plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
-        else:
-            grouped_data.plot(kind='line', marker='o', linestyle='-', color='blue')
-            plt.xlabel("Date")
-            plt.ylabel("Total Amount")
-            plt.title("Expense/Income Trend Over Time")
+        sns.lineplot(x=grouped_data.index, y=grouped_data.values, marker='o', linestyle='-', color='blue')
+        plt.xlabel("Date")
+        plt.ylabel("Total Amount")
+        plt.title("Expense/Income Trend Over Time")
 
     return save_chart_to_url()
 
-
-def save_chart_to_url():
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')  # Prevent overlapping elements
-    buf.seek(0)
-    plt.close()
-
-    return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
 
 @login_required
 def download_chart(request, chart_type):
@@ -405,8 +362,17 @@ def download_chart(request, chart_type):
     return response
 
 from django.core.paginator import Paginator
-
+@login_required
 def transactions(request):
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+
+    # Multi-select filters
+    selected_accounts = request.GET.getlist('account')
+    selected_categories = request.GET.getlist('category')
+    selected_types = request.GET.getlist('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
     transactions_list = Transaction.objects.filter(user=request.user).order_by('-date')
     paginator = Paginator(transactions_list, 10)  # Show 10 transactions per page
     page_number = request.GET.get('page')
@@ -414,12 +380,35 @@ def transactions(request):
 
     accounts = Account.objects.filter(user=request.user)
     categories = Category.objects.filter(user=request.user)
+    # Apply filters
+    if selected_accounts:
+        transactions = transactions.filter(account_id__in=selected_accounts)
+    if selected_categories:
+        transactions = transactions.filter(category_id__in=selected_categories)
+    if selected_types:
+        transactions = transactions.filter(type__in=selected_types)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    # Fetch accounts and categories for filtering
+    accounts = Account.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user)
 
     return render(request, 'finance/transactions.html', {
         'transactions': transactions,
         'accounts': accounts,
         'categories': categories,
+        'selected_accounts': selected_accounts,
+        'selected_categories': selected_categories,
+        'selected_types': selected_types,
     })
+
+    
+
+    
+ 
 
 
 import csv
