@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+import requests
 from .forms import UserRegistrationForm, TransactionForm, AccountForm, CategoryForm
 from .models import Account, Category, Transaction
 from django.shortcuts import get_object_or_404
@@ -15,6 +17,9 @@ from django.db.models import Q
 import io
 import base64
 import seaborn as sns
+import csv
+from django.http import HttpResponse
+import openpyxl
 import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
@@ -218,9 +223,7 @@ def delete_category(request, category_id):
     category.delete()
     return redirect('manage_categories')
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponseRedirect
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -400,13 +403,6 @@ def transactions(request):
 
     
 
-    
- 
-
-
-import csv
-from django.http import HttpResponse
-import openpyxl
 
 @login_required
 def download_transactions(request, file_format='csv'):
@@ -479,10 +475,6 @@ def download_transactions(request, file_format='csv'):
 
     return HttpResponse(status=400)  # Bad Request for unsupported formats
 
-
-import requests
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 
 API_KEY = '1c8e8aba6ed93cd206149d4e'  
 BASE_URL = f'https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD'

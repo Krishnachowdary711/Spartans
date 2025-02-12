@@ -80,7 +80,9 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+LOGIN_URL = '/login/'  # Redirect unauthorized users to the login page
+LOGIN_REDIRECT_URL = '/dashboard/'  # Redirect after successful login
+LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
