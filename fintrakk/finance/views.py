@@ -22,23 +22,46 @@ from django.http import HttpResponse
 import openpyxl
 import matplotlib
 matplotlib.use('Agg')
+from django.contrib.auth.models import User
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 from django.http import HttpResponse
+from django.contrib import messages
 
 def home(request):
     return render(request, 'finance/home.html')
 
 def register(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserRegistrationForm()
-    return render(request, 'finance/register.html', {'form': form})
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        confirm_password = request.POST['confirm_password']
+
+        # Checking if passwords match
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect('register')
+
+        # Checking if username already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+            return redirect('register')
+
+        # Checking if email already exists
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email is already registered!")
+            return redirect('register')
+
+        # Createing user with hashed password
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+
+        messages.success(request, "Registration successful! You can now log in.")
+        return redirect('login')
+
+    return render(request, 'finance/register.html')
 
 from django.db.models import Sum
 
