@@ -1,51 +1,43 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
+<h3>Overview</h3>
+
+<!-- Summary Cards -->
 <div class="row">
-    <div class="col-md-3">
-        <ul class="list-group">
-            <li class="list-group-item"><a href="{% url 'dashboard' %}">Overview</a></li>
-            <li class="list-group-item"><a href="{% url 'manage_accounts' %}">Accounts</a></li>
-            <li class="list-group-item"><a href="{% url 'manage_categories' %}">Categories</a></li>
-            <li class="list-group-item"><a href="{% url 'transactions' %}">Transactions</a></li>
-            <li class="list-group-item"><a href="{% url 'get_report' %}">Get Report</a></li>
-            <li class="list-group-item"><a href="{% url 'currency_conversion' %}">Currency Conversion</a></li>
-        </ul>
-    </div>
-    <div class="col-md-40">
-        <h3>Overview</h3>
-        <div class="card mb-4">
-            <div class="card-body">
-                <h4>Total Balance: ${{ total_balance }}</h4>
-                <h4>Total Transactions: {{ total_transactions }}</h4>
-            </div>
+    <div class="col-md-6">
+        <div class="card p-3 mb-3 shadow-sm">
+            <h5>Total Balance: <span class="text-primary">${{ total_balance }}</span></h5>
+            <h6>Total Transactions: <span class="text-secondary">{{ total_transactions }}</span></h6>
         </div>
+    </div>
+</div>
 
-        <h4>Account Balances</h4>
-        
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Account Name</th>
-                    <th>Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for account in accounts %}
-                <tr>
-                    <td>{{ account.name }}</td>
-                    <td>${{ account.balance }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2" class="text-center">No accounts found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- Account Balances -->
+<div class="card p-3 mb-3 shadow-sm">
+    <h5>Account Balances</h5>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Account Name</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.name }}</td>
+                <td>${{ account.balance|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-        <h4>Recent Transactions</h4>
+<!-- Recent Transactions -->
+<div class="card p-3 mb-3 shadow-sm">
+    <h5>Recent Transactions</h5>
+    <div class="table-responsive">
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -66,18 +58,11 @@
                     <td>{{ transaction.description }}</td>
                     <td>{{ transaction.type }}</td>
                     <td>{{ transaction.account.name }}</td>
-                    <td>${{ transaction.amount }}</td>
+                    <td>${{ transaction.amount|floatformat:2 }}</td>
                     <td>
-                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-primary btn-sm">Edit</a>
-                        <form action="{% url 'delete_transaction' transaction.id %}" method="POST" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
+                        <a href="{% url 'edit_transaction' transaction.id %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'delete_transaction' transaction.id %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center">No transactions found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
