@@ -331,7 +331,7 @@ def generate_chart(data, chart_type):
 
     if chart_type == 'bar':
         grouped_data = data.groupby(['category__name'])['amount'].sum().sort_values(ascending=False)
-        sns.barplot(x=grouped_data.values, y=grouped_data.index, palette='Blues_d')
+        sns.barplot(x=grouped_data.values, y=grouped_data.index, hue=grouped_data.index, legend=False, palette="Blues_d")
         plt.xlabel("Total Amount")
         plt.ylabel("Category")
         plt.title("Spending by Category")
