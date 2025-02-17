@@ -69,6 +69,7 @@ Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that
 	•	Requests (For fetching exchange rates)
 
 ## Timeline
+![image](https://github.com/user-attachments/assets/ab949004-ff39-4e6a-bb42-57d806b3b7fb)
 
 ## Group Details
 * Group name: Spartans
