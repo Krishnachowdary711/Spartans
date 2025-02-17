@@ -66,7 +66,7 @@ To achieve this, Fintrakk integrates secure data storage, expense categorization
 ## Tools & libraries
 - Python 3.x (Core programming language)
 - Django (Web framework)
-- SQLite/PostgreSQL (Database)
+- SQLite (Database)
 - Matplotlib & Pandas (Data analysis & visualization)
 - Bootstrap 5 (Front-end UI styling)
 - FontAwesome (Icons)
