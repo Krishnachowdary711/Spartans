@@ -1,6 +1,9 @@
+import os
+import tempfile
+from reportlab.lib.pagesizes import letter
 from django.shortcuts import render
-
-# Create your views here.
+from reportlab.pdfgen import canvas
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -94,8 +97,6 @@ def delete_transaction(request, transaction_id):
     elif transaction.type == 'Expense':
         account.balance += transaction.amount
     account.save()
-
-    # Delete the transaction
     transaction.delete()
 
     return HttpResponseRedirect(reverse('dashboard'))
@@ -105,7 +106,7 @@ def edit_transaction(request, transaction_id):
     transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
     account = transaction.account  
 
-    # Store the original values before the transaction is modified
+    # Storing the original values before the transaction is modified
     original_amount = transaction.amount
     original_type = transaction.type
 
@@ -177,7 +178,6 @@ def manage_accounts(request):
             account.save()
             return redirect('manage_accounts')
 
-    # Form for adding accounts
     form = AccountForm()
 
     return render(request, 'finance/manage_accounts.html', {
@@ -218,7 +218,6 @@ def manage_categories(request):
             category.save()
             return redirect('manage_categories')
 
-    # Form for adding categories
     form = CategoryForm()
 
     return render(request, 'finance/manage_categories.html', {
@@ -266,7 +265,7 @@ def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/')
 
-from django.db.models import Sum
+
 
 @login_required
 def get_report(request):
@@ -319,15 +318,15 @@ def save_chart_to_url():
     plt.close()
     return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
 
-# Function to generate enhanced visualizations
+@login_required
 def generate_chart(data, chart_type):
     if data.empty or 'amount' not in data.columns:
         plt.figure(figsize=(6, 4))
-        plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        plt.text(0.5, 0.5, "No Data Available", fontsize=16, ha='center')
         return save_chart_to_url()
 
     plt.figure(figsize=(10, 6))
-    sns.set_style("whitegrid")  # Improved aesthetics
+    sns.set_style("whitegrid") 
 
     if chart_type == 'bar':
         grouped_data = data.groupby(['category__name'])['amount'].sum().sort_values(ascending=False)
@@ -368,7 +367,7 @@ def download_chart(request, chart_type):
     # Convert transactions to DataFrame
     data = pd.DataFrame.from_records(transactions.values('date', 'category__name', 'type', 'amount'))
 
-    # Convert 'amount' to numeric
+    # Converting 'amount' to numeric
     if not data.empty:
         data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to float
         data = data.dropna(subset=['amount'])  # Remove invalid rows
