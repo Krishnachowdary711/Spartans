@@ -7,7 +7,7 @@ from django.db import models
 class Account(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.name
@@ -28,7 +28,7 @@ class Transaction(models.Model):
     type = models.CharField(choices=TRANSACTION_TYPES, max_length=10)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
-    date = models.DateField()  # Removed auto_now_add=True
+    date = models.DateField()  
 
     def __str__(self):
-        return f"{self.type} - {self.amount}"
+        return f"{self.date} - {self.category.name} - {self.amount}"

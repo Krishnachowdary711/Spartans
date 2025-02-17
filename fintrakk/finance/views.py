@@ -66,7 +66,6 @@ def register(request):
 
     return render(request, 'finance/register.html')
 
-from django.db.models import Sum
 
 @login_required
 def dashboard(request):
@@ -140,7 +139,7 @@ def edit_transaction(request, transaction_id):
 @login_required
 def add_transaction(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST)
+        form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
             transaction = form.save(commit=False)
             transaction.user = request.user
@@ -161,7 +160,7 @@ def add_transaction(request):
 
             return redirect('dashboard')
     else:
-        form = TransactionForm()
+        form = TransactionForm(user=request.user)
 
     return render(request, 'finance/add_transaction.html', {'form': form})
 
@@ -568,8 +567,8 @@ def currency_conversion(request):
 
     converted_amount = None
     if amount and from_currency in rates and to_currency in rates:
-        usd_amount = amount / rates[from_currency]  # Convert to USD first
-        converted_amount = usd_amount * rates[to_currency]  # Convert from USD to target currency
+        usd_amount = amount / rates[from_currency]  
+        converted_amount = usd_amount * rates[to_currency]  
 
     return render(request, 'finance/currency_conversion.html', {
         'rates': rates,
