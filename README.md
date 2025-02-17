@@ -11,7 +11,7 @@ Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that
 ### 1. Data source and retrieval
 - Users can **input financial transactions** manually.
 - Supports **real-time exchange rate retrieval** for multi-currency transactions.
-- Data fetched and stored securely in **SQLite/PostgreSQL database**.
+- Data fetched and stored securely in **SQLite database**.
 
 ### 2. Data storage and handling
 - Transactions stored with fields: **Date, Category, Type, Amount, Account**.
