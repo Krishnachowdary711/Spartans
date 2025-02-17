@@ -6,9 +6,7 @@
 
 
 ## Description
-Fintrakk is a Python-based tool that helps users track and manage their finances by providing data storage, statistical analysis, and visualizations. The goal is to simplify financial management and offer insights into spending patterns. This project was chosen to help individuals gain better control over their finances through an intuitive and data-driven approach.
-
-* To achieve this, Fintrakk integrates secure data storage, expense categorization, budgeting, statistical analysis, and interactive visualizations. These features allow users to monitor income, set budgets, analyze trends, and make informed financial decisions effortlessly.
+* Fintrakk is a Python-based tool that helps users track and manage their finances by providing data storage, statistical analysis, and visualizations. The goal is to simplify financial management and offer insights into spending patterns. This project was chosen to help individuals gain better control over their finances through an intuitive and data-driven approach. To achieve this, Fintrakk integrates secure data storage, expense categorization, budgeting, statistical analysis, and interactive visualizations. These features allow users to monitor income, set budgets, analyze trends, and make informed financial decisions effortlessly.
 ---
 
 ## Functionalities
@@ -82,8 +80,7 @@ Fintrakk is a Python-based tool that helps users track and manage their finances
 * Tutor responsible: David Wode
 * Group team leader: Krishna Sai
 * Group members: Ruthran Veerasamy Balakrishnan, Krishna Sai
-
-
+* Krishna contributed to the design and development of the UI/UX for the webpage, along with implementing the transactions and currency conversion columns. Meanwhile, Ruthran worked on the Accounts and Categories columns. Finally, both collaborated to develop the report generation column.
 ## Future improvements
 - Increase More features in the existing model like, Integrating it with banking app.
 - Budget planning & alerts for overspending.
