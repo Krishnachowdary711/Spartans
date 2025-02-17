@@ -1,9 +1,11 @@
 # PythonForDataScience
 ## FINTRAKK - Personel Expenses Trancking System
-Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that allows users to monitor and manage their financial activities. It provides **data storage, statistical analysis, and visualizations** to help users understand their income and expenses efficiently.
 
----
+
+
 ## Description
+Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that allows users to monitor and manage their financial activities. It provides **data storage, statistical analysis, and visualizations** to help users understand their income and expenses efficiently.
+---
 
 ## Functionalities
 ### 1. Data source and retrieval
