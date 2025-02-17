@@ -69,14 +69,22 @@ Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that
 ## Timeline
 
 ## Group Details
-* Group name:
-* Group code: 
-* Group repository:
-* Tutor responsible:
-* Group team leader:
-* Group members: 
+* Group name: Spartans
+* Group code: G06
+* Group repository: Spartans
+* Tutor responsible: David Wode
+* Group team leader: Krishna Sai
+* Group members: Ruthran Veerasamy Balakrishnan, Krishna Sai
 
 
 ## Future improvements
+- Increase More features in the existing model like, Integrating it with banking app.
+- Budget planning & alerts for overspending.
+- Interactive Visualization Techniques
 
 ## Acknowledgement
+We sincerely appreciate the valuable contributions and support from the following individuals, as well as Georg August University, throughout the development of this project.
+
+* Prof. Bela Gipp & Gipp Lab: We are deeply thankful for the opportunity to participate in the lecture and group project under your guidance and mentorship.
+* David Wode: Our tutor, whose insightful feedback and guidance were helpful in shaping our project and enhancing our understanding.
+* Terry Lima Ruas: Our lecturer whose expertise and encouragement significantly contributed to the success and growth of our project.
