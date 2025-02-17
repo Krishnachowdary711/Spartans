@@ -359,31 +359,83 @@ def generate_chart(data, chart_type):
 
 @login_required
 def download_chart(request, chart_type):
+    """
+    Generate and serve a chart image as a file download.
+    """
     transactions = Transaction.objects.filter(user=request.user)
 
-    if not transactions.exists():
-        return HttpResponse("No transactions available", status=400)
+    # Fetch filters from request
+    account_ids = request.GET.getlist('account')
+    category_ids = request.GET.getlist('category')
+    transaction_types = request.GET.getlist('type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
 
-    # Convert transactions to DataFrame
+    # Apply filters
+    if account_ids:
+        transactions = transactions.filter(account_id__in=account_ids)
+    if category_ids:
+        transactions = transactions.filter(category_id__in=category_ids)
+    if transaction_types:
+        transactions = transactions.filter(type__in=transaction_types)
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    # Convert queryset to DataFrame
     data = pd.DataFrame.from_records(transactions.values('date', 'category__name', 'type', 'amount'))
 
-    # Converting 'amount' to numeric
+    # Ensure 'amount' is numeric
     if not data.empty:
-        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')  # Convert to float
-        data = data.dropna(subset=['amount'])  # Remove invalid rows
-
-    # Ensure we have valid data
-    if data.empty or 'amount' not in data.columns:
-        return HttpResponse("No valid numeric data available to plot.", status=400)
+        data['amount'] = pd.to_numeric(data['amount'], errors='coerce')
+        data = data.dropna(subset=['amount'])
 
     # Generate the requested chart
-    generate_chart(data, chart_type)
+    buf = io.BytesIO()
+    if not data.empty and 'amount' in data.columns:
+        plt.figure(figsize=(8, 5))
 
-    response = HttpResponse(content_type="image/png")
-    plt.savefig(response, format="png", bbox_inches='tight')
-    plt.close()
+        if chart_type == 'bar':
+            grouped_data = data.groupby(['category__name'])['amount'].sum()
+            grouped_data.plot(kind='bar', color='skyblue')
+            plt.xlabel("Category")
+            plt.ylabel("Total Amount")
+            plt.title("Spending by Category")
+
+        elif chart_type == 'pie':
+            grouped_data = data.groupby(['category__name'])['amount'].sum()
+            plt.pie(
+                grouped_data,
+                labels=grouped_data.index,
+                autopct='%1.1f%%',
+                startangle=90,
+                colors=plt.cm.Paired.colors
+            )
+            plt.legend(title="Categories", loc="best", bbox_to_anchor=(1, 1))
+            plt.title("Expense Distribution")
+
+        elif chart_type == 'line':
+            grouped_data = data.groupby(['date'])['amount'].sum()
+            grouped_data.plot(kind='line', marker='o', linestyle='-', color='blue')
+            plt.xlabel("Date")
+            plt.ylabel("Total Amount")
+            plt.title("Expense/Income Trend Over Time")
+
+        plt.savefig(buf, format="png", bbox_inches='tight')  # Save to buffer
+        plt.close()
+    else:
+        plt.figure(figsize=(6, 4))
+        plt.text(0.5, 0.5, "No Data Available", fontsize=14, ha='center')
+        plt.savefig(buf, format="png", bbox_inches='tight')
+        plt.close()
+
+    buf.seek(0)
+    
+    # Create HTTP Response with the PNG file
+    response = HttpResponse(buf, content_type="image/png")
     response["Content-Disposition"] = f"attachment; filename={chart_type}_chart.png"
-
+    
     return response
 
 from django.core.paginator import Paginator

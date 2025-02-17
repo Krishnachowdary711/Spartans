@@ -80,12 +80,18 @@
 {% if chart_url %}
     <h4>Visualization</h4>
     <img src="{{ chart_url }}" alt="Report Chart" class="img-fluid">
-    
+
     <!-- Download buttons -->
     <div class="mt-3">
-        <a href="{% url 'download_chart' 'bar' %}" class="btn btn-outline-success">Download Bar Chart</a>
-        <a href="{% url 'download_chart' 'pie' %}" class="btn btn-outline-success">Download Pie Chart</a>
-        <a href="{% url 'download_chart' 'line' %}" class="btn btn-outline-success">Download Line Chart</a>
+        <a href="{% url 'download_chart' 'bar' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success">
+            <i class="fas fa-download"></i> Download Bar Chart
+        </a>
+        <a href="{% url 'download_chart' 'pie' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success">
+            <i class="fas fa-download"></i> Download Pie Chart
+        </a>
+        <a href="{% url 'download_chart' 'line' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success">
+            <i class="fas fa-download"></i> Download Line Chart
+        </a>
     </div>
 {% else %}
     <p class="text-muted">No data available for the selected filters.</p>
