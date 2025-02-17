@@ -1,7 +1,7 @@
 # PythonForDataScience
 ![image](https://github.com/user-attachments/assets/d9459c3a-414b-41de-9509-316f96b78824)
 
-## FINTRAKK - Personel Expenses Trancking System
+## FINTRAKK - Personal Expenses Tracking System
 
 
 
