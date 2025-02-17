@@ -266,7 +266,7 @@ def user_logout(request):
 
 
 
-
+@login_required
 def get_report(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 

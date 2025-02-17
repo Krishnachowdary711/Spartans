@@ -14,7 +14,9 @@ class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['date', 'category', 'account', 'amount', 'type', 'description']
-    
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),  
+        }
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)  # Get user from view
         super().__init__(*args, **kwargs)
