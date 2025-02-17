@@ -80,7 +80,7 @@
 * Tutor responsible: David Wode
 * Group team leader: Krishna Sai
 * Group members: Ruthran Veerasamy Balakrishnan, Krishna Sai
-* Krishna contributed to the design and development of the UI/UX for the webpage, along with implementing the transactions and currency conversion columns. Meanwhile, Ruthran worked on the Accounts and Categories columns. Finally, both collaborated to develop the report generation column.
+* Krishna Sai contributed to the design and development of the Django Framework with Database Schema, along with implementing the Overvie, transactions and currency conversion features. Meanwhile, Ruthran worked on managing Accounts and Categories. Finally, both collaborated to develop the Generate Report Feature.
 ## Future improvements
 - Increase More features in the existing model like, Integrating it with banking app.
 - Budget planning & alerts for overspending.
