@@ -62,13 +62,13 @@
 - Open your Browser and access the app at http://127.0.0.1:8000/
 
 ## Tools & libraries
-	•	Python 3.x (Core programming language)
-	•	Django (Web framework)
-	•	SQLite/PostgreSQL (Database)
-	•	Matplotlib & Pandas (Data analysis & visualization)
-	•	Bootstrap 5 (Front-end UI styling)
-	•	FontAwesome (Icons)
-	•	Requests (For fetching exchange rates)
+- Python 3.x (Core programming language)
+- Django (Web framework)
+- SQLite/PostgreSQL (Database)
+- Matplotlib & Pandas (Data analysis & visualization)
+- Bootstrap 5 (Front-end UI styling)
+- FontAwesome (Icons)
+- Requests (For fetching exchange rates)
 
 ## Timeline
 ![image](https://github.com/user-attachments/assets/ab949004-ff39-4e6a-bb42-57d806b3b7fb)
