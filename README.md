@@ -1,12 +1,12 @@
 # PythonForDataScience
 ![image](https://github.com/user-attachments/assets/d9459c3a-414b-41de-9509-316f96b78824)
 
-# FINTRAKK - Personal Expenses Tracking System
+## FINTRAKK - Personal Expenses Tracking System
 
 
 
 ## Description
-##Fintrakk is a Python-based tool that helps users track and manage their finances by providing data storage, statistical analysis, and visualizations. The goal is to simplify financial management and offer insights into spending patterns. This project was chosen to help individuals gain better control over their finances through an intuitive and data-driven approach.
+Fintrakk is a Python-based tool that helps users track and manage their finances by providing data storage, statistical analysis, and visualizations. The goal is to simplify financial management and offer insights into spending patterns. This project was chosen to help individuals gain better control over their finances through an intuitive and data-driven approach.
 
 To achieve this, Fintrakk integrates secure data storage, expense categorization, budgeting, statistical analysis, and interactive visualizations. These features allow users to monitor income, set budgets, analyze trends, and make informed financial decisions effortlessly.**
 ---
