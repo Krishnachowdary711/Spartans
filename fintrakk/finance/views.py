@@ -267,7 +267,7 @@ def user_logout(request):
 
 
 
-@login_required
+
 def get_report(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
 
@@ -318,7 +318,7 @@ def save_chart_to_url():
     plt.close()
     return "data:image/png;base64," + base64.b64encode(buf.read()).decode()
 
-@login_required
+
 def generate_chart(data, chart_type):
     if data.empty or 'amount' not in data.columns:
         plt.figure(figsize=(6, 4))
