@@ -40,7 +40,7 @@ Fintrakk is a Python-based **Personal Finance and Expense Tracking System** that
 
 ## Installation and Usage
 ### **1. Clone the Repository**
-- git clone https://github.com/krishnachowdary711/fintrakk-expense-tracker.git
+- git clone https://github.com/Krishnachowdary711/Spartans.git
 - cd fintrakk-expense-tracker
 ### **2. Create and Activate Virtual Environment**
 - python -m venv venv
